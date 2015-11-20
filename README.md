@@ -15,7 +15,7 @@ Direct DB links that might became broken over time:
 
 ## How To Install   
 ```bash
-go get github.com/mirrr/sypexgeo
+go get github.com/mirrr/go-sypexgeo
 ```
 
    
@@ -24,7 +24,7 @@ go get github.com/mirrr/sypexgeo
 ```go
 package main
 
-import "github.com/mirrr/sypexgeo"
+import "github.com/mirrr/go-sypexgeo"
 
 func main() {
     geo := sypexgeo.New("/path/to/db/SxGeoCity.dat")
