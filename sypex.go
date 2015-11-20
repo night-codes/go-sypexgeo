@@ -1,3 +1,5 @@
+// Package sypexgeo to access data from Sypex Geo IP database files,
+// accepts only SypexGeo 2.2 databases
 package sypexgeo
 
 import (
@@ -7,48 +9,47 @@ import (
 	"strings"
 )
 
-// Slices of SxGeo db
-type Slices struct {
-	BIndex    []uint32 // индекс первого байта
-	MIndex    []uint32 // главный индекс
-	DB        []byte
-	Regions   []byte
-	Cities    []byte
-	Countries []byte
-}
+type (
+	// Obj is wrap for map[string]interface{}
+	Obj      map[string]interface{}
+	dbSlices struct {
+		BIndex    []uint32 // индекс первого байта
+		MIndex    []uint32 // главный индекс
+		DB        []byte
+		Regions   []byte
+		Cities    []byte
+		Countries []byte
+	}
+	finder struct {
+		BLen       uint32 // кол-во элементов индекса первого байта
+		MLen       uint32 // кол-во элементов главного индекса
+		Range      uint32 // Блоков в одном элементе индекса (до 65 тыс.)
+		DBItems    uint32 // Количество диапазонов в базе (айпишников)
+		IDLen      uint32 // Размер ID-блока 1-для городов, 3-для стран
+		BlockLen   uint32 // Размер блока BD = IDLen+3
+		PackLen    uint32 // Размер блока описания упаковки
+		MaxRegion  uint32 // максимальный размер записи в справочнике регионов
+		MaxCity    uint32 // максимальный размер записи в справочнике городов
+		MaxCountry uint32 // максимальный размер записи в справочнике стран
+		CountryLen uint32 // размер справочника стран
+		Pack       []string
+		S          dbSlices
+	}
+	// SxGEO main object
+	SxGEO struct {
+		finder  finder
+		Version float32
+		Updated uint32
+	}
+)
 
-type obj map[string]interface{}
-
-// Finder is geo base file struct
-type Finder struct {
-	Data       []byte
-	Version    float32
-	Updated    uint32
-	BLen       uint32 // кол-во элементов индекса первого байта
-	MLen       uint32 // кол-во элементов главного индекса
-	Range      uint32 // Блоков в одном элементе индекса (до 65 тыс.)
-	DBItems    uint32 // Количество диапазонов в базе (айпишников)
-	IDLen      uint32 // Размер ID-блока 1-для городов, 3-для стран
-	BlockLen   uint32 // Размер блока BD = IDLen+3
-	PackLen    uint32 // Размер блока описания упаковки
-	MaxRegion  uint32 // максимальный размер записи в справочнике регионов
-	MaxCity    uint32 // максимальный размер записи в справочнике городов
-	MaxCountry uint32 // максимальный размер записи в справочнике стран
-	RegnLen    uint32 // размер справочника
-	CityLen    uint32 // размер справочника
-	CountryLen uint32 // размер справочника
-	Pack       []string
-	S          Slices
-}
-
-// getLocationOffset method
-func (f *Finder) getLocationOffset(IP string) (uint32, error) {
+func (f *finder) getLocationOffset(IP string) (uint32, error) {
 	firstByte, err := getIPByte(IP, 0)
 	if err != nil {
 		return 0, err
 	}
 	IPn := uint32(ipToN(IP))
-	if firstByte == 0 || firstByte == 10 || firstByte == 127 || int(firstByte) >= len(f.S.BIndex) || IPn == 0 {
+	if firstByte == 0 || firstByte == 10 || firstByte == 127 || uint32(firstByte) >= f.BLen || IPn == 0 {
 		return 0, errors.New("IP out of range")
 	}
 
@@ -71,7 +72,7 @@ func (f *Finder) getLocationOffset(IP string) (uint32, error) {
 	return f.searchDb(IPn, min, max), nil
 }
 
-func (f *Finder) searchDb(IPn, min, max uint32) uint32 {
+func (f *finder) searchDb(IPn, min, max uint32) uint32 {
 	if max-min > 1 {
 		IPn &= 0x00FFFFFF
 
@@ -98,7 +99,7 @@ func (f *Finder) searchDb(IPn, min, max uint32) uint32 {
 	return sliceUint32(f.S.DB, min*f.BlockLen-f.IDLen, f.IDLen)
 }
 
-func (f *Finder) searchIdx(IPn, min, max uint32) uint32 {
+func (f *finder) searchIdx(IPn, min, max uint32) uint32 {
 	var offset uint32
 	if max < min {
 		max, min = min, max
@@ -117,13 +118,13 @@ func (f *Finder) searchIdx(IPn, min, max uint32) uint32 {
 	return min
 }
 
-func (f *Finder) unpack(seek, uType uint32) (obj, error) {
+func (f *finder) unpack(seek, uType uint32) (Obj, error) {
 	var bs []byte
 	var maxLen uint32
-	ret := obj{}
+	ret := Obj{}
 
 	if int(uType+1) > len(f.Pack) {
-		return obj{}, errors.New("Pack method not found")
+		return Obj{}, errors.New("Pack method not found")
 	}
 
 	switch uType {
@@ -179,17 +180,17 @@ func (f *Finder) unpack(seek, uType uint32) (obj, error) {
 	return ret, nil
 }
 
-func (f *Finder) parseCity(seek uint32, full bool) (obj, error) {
+func (f *finder) parseCity(seek uint32, full bool) (Obj, error) {
 	if f.PackLen == 0 {
-		return obj{}, errors.New("Pack methods not found")
+		return Obj{}, errors.New("Pack methods not found")
 	}
-	country, city, region := obj{}, obj{}, obj{}
+	country, city, region := Obj{}, Obj{}, Obj{}
 	var err error
 	onlyCountry := false
 
 	if seek < f.CountryLen {
 		country, err = f.unpack(seek, 0)
-		city = obj{
+		city = Obj{
 			"id":      0,
 			"lat":     country["lat"],
 			"lon":     country["lon"],
@@ -199,12 +200,12 @@ func (f *Finder) parseCity(seek uint32, full bool) (obj, error) {
 		onlyCountry = true
 	} else {
 		city, err = f.unpack(seek, 2)
-		country = obj{"id": city["country_id"], "iso": isoCodes[city["country_id"].(uint8)]}
+		country = Obj{"id": city["country_id"], "iso": isoCodes[city["country_id"].(uint8)]}
 		delete(city, "country_id")
 	}
 
 	if err != nil {
-		return obj{}, err
+		return Obj{}, err
 	}
 
 	if full {
@@ -212,31 +213,31 @@ func (f *Finder) parseCity(seek uint32, full bool) (obj, error) {
 		if !onlyCountry {
 			region, err = f.unpack(city["region_seek"].(uint32), 1)
 			if err != nil {
-				return obj{}, err
+				return Obj{}, err
 			}
 			country, err = f.unpack(uint32(region["country_seek"].(uint16)), 0)
 			delete(city, "region_seek")
 			delete(region, "country_seek")
 		}
 
-		return obj{"country": country, "region": region, "city": city}, err
+		return Obj{"country": country, "region": region, "city": city}, err
 	}
 
 	delete(city, "region_seek")
-	return obj{"country": country, "region": region, "city": city}, err
+	return Obj{"country": country, "region": region, "city": city}, err
 }
 
-// GetCityFull ~
-func (f *Finder) GetCityFull(IP string) (interface{}, error) {
-	seek, err := f.getLocationOffset(IP)
+// GetCityFull get full geo info
+func (s *SxGEO) GetCityFull(IP string) (map[string]interface{}, error) {
+	seek, err := s.finder.getLocationOffset(IP)
 	if err != nil {
-		return 0, err
+		return Obj{}, err
 	}
-	return f.parseCity(seek, true)
+	return s.finder.parseCity(seek, true)
 }
 
-// New finder object
-func New(filename string) Finder {
+// New SxGEO object
+func New(filename string) SxGEO {
 	dat, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic("Database file not found")
@@ -264,31 +265,30 @@ func New(filename string) Finder {
 	cntrEnd := cntrStart + countryLen
 	pack := strings.Split(string(dat[40:40+packLen]), string(byte(0)))
 
-	return Finder{
-		Data:       dat,
-		Version:    float32(dat[3]) / 10,
-		Updated:    readUint32(dat, 4),
-		Range:      uint32(readUint16(dat, 13)),
-		DBItems:    DBItems,
-		IDLen:      IDLen,
-		BLen:       BLen,
-		MLen:       MLen,
-		RegnLen:    regnLen,
-		CityLen:    cityLen,
-		CountryLen: countryLen,
-		BlockLen:   blockLen,
-		PackLen:    packLen,
-		Pack:       pack,
-		MaxRegion:  uint32(readUint16(dat, 20)),
-		MaxCity:    uint32(readUint16(dat, 22)),
-		MaxCountry: uint32(readUint16(dat, 32)),
-		S: Slices{
-			BIndex:    fullUint32(dat[BStart:MStart]),
-			MIndex:    fullUint32(dat[MStart:DBStart]),
-			DB:        dat[DBStart:regnStart],
-			Regions:   dat[regnStart:cityStart],
-			Cities:    dat[cityStart:cntrStart],
-			Countries: dat[cntrStart:cntrEnd],
+	return SxGEO{
+		Version: float32(dat[3]) / 10,
+		Updated: readUint32(dat, 4),
+		finder: finder{
+			Range:      uint32(readUint16(dat, 13)),
+			DBItems:    DBItems,
+			IDLen:      IDLen,
+			BLen:       BLen,
+			MLen:       MLen,
+			CountryLen: countryLen,
+			BlockLen:   blockLen,
+			PackLen:    packLen,
+			Pack:       pack,
+			MaxRegion:  uint32(readUint16(dat, 20)),
+			MaxCity:    uint32(readUint16(dat, 22)),
+			MaxCountry: uint32(readUint16(dat, 32)),
+			S: dbSlices{
+				BIndex:    fullUint32(dat[BStart:MStart]),
+				MIndex:    fullUint32(dat[MStart:DBStart]),
+				DB:        dat[DBStart:regnStart],
+				Regions:   dat[regnStart:cityStart],
+				Cities:    dat[cityStart:cntrStart],
+				Countries: dat[cntrStart:cntrEnd],
+			},
 		},
 	}
 }
