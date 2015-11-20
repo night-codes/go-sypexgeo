@@ -10,7 +10,7 @@ Direct DB links that might became broken over time:
 
 
 ## Documentation
-[Docs on godoc.org](https://godoc.org/github.com/mirrr/sypexgeo)   
+[Docs on godoc.org](https://godoc.org/github.com/mirrr/go-sypexgeo)   
 
 
 ## How To Install   

@@ -2,6 +2,7 @@ package sypexgeo
 
 import (
 	"encoding/binary"
+	"errors"
 	"math"
 	"strconv"
 	"strings"
@@ -58,6 +59,9 @@ func sliceUint32L(bs []byte, offset, getLen int) uint32 {
 
 func getIPByte(IP string, n byte) (byte, error) {
 	sIP := strings.Split(IP, ".")
+	if len(sIP) < 4 {
+		return 0, errors.New("IP out of range")
+	}
 	b, err := strconv.ParseUint(sIP[n], 10, 8)
 	if err != nil {
 		return 0, err

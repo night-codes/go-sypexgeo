@@ -4,6 +4,7 @@ package sypexgeo
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -227,13 +228,44 @@ func (f *finder) parseCity(seek uint32, full bool) (Obj, error) {
 	return Obj{"country": country, "region": region, "city": city}, err
 }
 
-// GetCityFull get full geo info
+// GetCountry return string country iso-code, like `RU`, `UA` etc.
+func (s *SxGEO) GetCountry(IP string) (string, error) {
+	info, err := s.GetCity(IP)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(info["country"].(Obj))
+
+	return info["country"].(Obj)["iso"].(string), nil
+}
+
+// GetCountryID return integer country identifier
+func (s *SxGEO) GetCountryID(IP string) (int, error) {
+	info, err := s.GetCity(IP)
+	if err != nil {
+		return 0, err
+	}
+	fmt.Println(info["country"].(Obj))
+
+	return int(info["country"].(Obj)["id"].(uint8)), nil
+}
+
+// GetCityFull get full info by IP (with regions and contries data)
 func (s *SxGEO) GetCityFull(IP string) (map[string]interface{}, error) {
 	seek, err := s.finder.getLocationOffset(IP)
 	if err != nil {
 		return Obj{}, err
 	}
 	return s.finder.parseCity(seek, true)
+}
+
+// GetCity get short info by IP
+func (s *SxGEO) GetCity(IP string) (map[string]interface{}, error) {
+	seek, err := s.finder.getLocationOffset(IP)
+	if err != nil {
+		return Obj{}, err
+	}
+	return s.finder.parseCity(seek, false)
 }
 
 // New SxGEO object
