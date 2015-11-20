@@ -4,7 +4,6 @@ package sypexgeo
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -234,8 +233,6 @@ func (s *SxGEO) GetCountry(IP string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(info["country"].(Obj))
-
 	return info["country"].(Obj)["iso"].(string), nil
 }
 
@@ -245,8 +242,6 @@ func (s *SxGEO) GetCountryID(IP string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	fmt.Println(info["country"].(Obj))
-
 	return int(info["country"].(Obj)["id"].(uint8)), nil
 }
 
