@@ -1,5 +1,5 @@
 # go-sypexgeo
-SypexGeo API bindings for Go (provides access data from [SypexGeo](https://sypexgeo.net/) IP database files). Accepts only SypexGeo 2.2 format.
+SypexGeo API bindings for Go (provides access data from [SypexGeo](https://sypexgeo.net/) IP database files). Accepts only SypexGeo 2.2 or above format.
    
 For more information about Sypex Geo databases and their features please visit http://sypexgeo.net.
 

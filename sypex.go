@@ -14,26 +14,26 @@ type (
 	// Obj is wrap for map[string]interface{}
 	Obj      map[string]interface{}
 	dbSlices struct {
-		BIndex    []uint32 // индекс первого байта
-		MIndex    []uint32 // главный индекс
+		BIndex    []uint32 // byte index
+		MIndex    []uint32 // main index
 		DB        []byte
 		Regions   []byte
 		Cities    []byte
 		Countries []byte
 	}
 	finder struct {
-		BLen       uint32 // кол-во элементов индекса первого байта
-		MLen       uint32 // кол-во элементов главного индекса
-		Range      uint32 // Блоков в одном элементе индекса (до 65 тыс.)
-		DBItems    uint32 // Количество диапазонов в базе (айпишников)
-		IDLen      uint32 // Размер ID-блока 1-для городов, 3-для стран
-		BlockLen   uint32 // Размер блока BD = IDLen+3
-		PackLen    uint32 // Размер блока описания упаковки
-		MaxRegion  uint32 // максимальный размер записи в справочнике регионов
-		MaxCity    uint32 // максимальный размер записи в справочнике городов
-		MaxCountry uint32 // максимальный размер записи в справочнике стран
-		CountryLen uint32 // размер справочника стран
-		Pack       []string
+		BLen       uint32   // byte index length
+		MLen       uint32   // main index length
+		Blocks     uint32   // blocks in index item
+		DBItems    uint32   // number of IP in the database
+		IDLen      uint32   // size of ID-block 1-city, 3-country
+		BlockLen   uint32   // size of DB block = IDLen+3
+		PackLen    uint32   // size of pack info
+		MaxRegion  uint32   // max length of the region record
+		MaxCity    uint32   // max length of the city record
+		MaxCountry uint32   // max length of the country record
+		CountryLen uint32   // size of country catalog
+		Pack       []string // pack info
 		S          dbSlices
 	}
 	// SxGEO main object
@@ -57,14 +57,14 @@ func (f *finder) getLocationOffset(IP string) (uint32, error) {
 	var min, max uint32
 	minIndex, maxIndex := f.S.BIndex[firstByte-1], f.S.BIndex[firstByte]
 
-	if maxIndex-minIndex > f.Range {
-		part := f.searchIdx(IPn, minIndex/f.Range, maxIndex/f.Range-1)
+	if maxIndex-minIndex > f.Blocks {
+		part := f.searchIdx(IPn, minIndex/f.Blocks, maxIndex/f.Blocks-1)
 		max = f.DBItems
 		if part > 0 {
-			min = part * f.Range
+			min = part * f.Blocks
 		}
 		if part <= f.MLen {
-			max = (part + 1) * f.Range
+			max = (part + 1) * f.Blocks
 		}
 		min, max = max32(min, minIndex), min32(max, maxIndex)
 	} else {
@@ -250,7 +250,7 @@ func (s *SxGEO) GetCountryID(IP string) (int, error) {
 	return int(info["country"].(Obj)["id"].(uint8)), nil
 }
 
-// GetCityFull get full info by IP (with regions and contries data)
+// GetCityFull get full info by IP (with regions and countries data)
 func (s *SxGEO) GetCityFull(IP string) (map[string]interface{}, error) {
 	seek, err := s.finder.getLocationOffset(IP)
 	if err != nil {
@@ -280,20 +280,20 @@ func New(filename string) SxGEO {
 	}
 
 	IDLen := uint32(dat[19])
-	blockLen := 3 + IDLen                   // размер блока в базе диапазонов
-	DBItems := readUint32(dat, 15)          // кол-во диапазонов IP
-	BLen := uint32(dat[10])                 // количество элементов в индексе первого байта
-	MLen := uint32(readUint16(dat, 11))     // количество элементов в главном индексе
-	packLen := uint32(readUint16(dat, 38))  // Размер описания формата упаковки города/региона/страны
-	regnLen := readUint32(dat, 24)          // Размер справочника регионов
-	cityLen := readUint32(dat, 28)          // Размер справочника городов
-	countryLen := readUint32(dat, 34)       // Размер справочника стран
-	BStart := uint32(40 + packLen)          // Начало индекса первого байта
-	MStart := BStart + BLen*4               // Начало главного индекса
-	DBStart := MStart + MLen*4              // Начало базы диапазонов
-	regnStart := DBStart + DBItems*blockLen // Начало справочника регионов
-	cityStart := regnStart + regnLen        // Начало справочника городов
-	cntrStart := cityStart + cityLen        // Начало справочника стран
+	blockLen := 3 + IDLen
+	DBItems := readUint32(dat, 15)
+	BLen := uint32(dat[10])
+	MLen := uint32(readUint16(dat, 11))
+	packLen := uint32(readUint16(dat, 38))
+	regnLen := readUint32(dat, 24)
+	cityLen := readUint32(dat, 28)
+	countryLen := readUint32(dat, 34)
+	BStart := uint32(40 + packLen)
+	MStart := BStart + BLen*4
+	DBStart := MStart + MLen*4
+	regnStart := DBStart + DBItems*blockLen
+	cityStart := regnStart + regnLen
+	cntrStart := cityStart + cityLen
 	cntrEnd := cntrStart + countryLen
 	pack := strings.Split(string(dat[40:40+packLen]), string(byte(0)))
 
@@ -301,7 +301,7 @@ func New(filename string) SxGEO {
 		Version: float32(dat[3]) / 10,
 		Updated: readUint32(dat, 4),
 		finder: finder{
-			Range:      uint32(readUint16(dat, 13)),
+			Blocks:     uint32(readUint16(dat, 13)),
 			DBItems:    DBItems,
 			IDLen:      IDLen,
 			BLen:       BLen,
