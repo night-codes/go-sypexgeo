@@ -19,14 +19,6 @@ type Slices struct {
 
 type obj map[string]interface{}
 
-// type RawCityHeader struct {
-//   uint24_t     region_seek;  // M:region_seek
-//   std::uint8_t country_id;   // T:country_id
-//   uint24_t     id;           // M:id
-//   std::int32_t lat;          // N5:lat
-//   std::int32_t lon;          // N5:lon
-// };
-
 // Finder is geo base file struct
 type Finder struct {
 	Data       []byte
@@ -242,13 +234,6 @@ func (f *Finder) GetCityFull(IP string) (interface{}, error) {
 	}
 	return f.parseCity(seek, true)
 }
-
-//
-//
-//
-//
-//
-//
 
 // New finder object
 func New(filename string) Finder {
