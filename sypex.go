@@ -200,30 +200,34 @@ func (f *finder) parseCity(seek uint32, full bool) (Obj, error) {
 		onlyCountry = true
 	} else {
 		city, err = f.unpack(seek, 2)
-		country = Obj{"id": city["country_id"], "iso": isoCodes[city["country_id"].(uint8)]}
+		country = Obj{
+			"id":      city["country_id"],
+			"iso":     isoCodes[city["country_id"].(uint8)],
+			"name_en": "",
+			"name_ru": "",
+			"lat":     city["lat"],
+			"lon":     city["lon"],
+		}
 		delete(city, "country_id")
 	}
 
-	if err != nil {
-		return Obj{}, err
-	}
-
-	if full {
-		_ = onlyCountry
-		if !onlyCountry {
-			region, err = f.unpack(city["region_seek"].(uint32), 1)
-			if err != nil {
-				return Obj{}, err
+	if err == nil {
+		if full {
+			_ = onlyCountry
+			if !onlyCountry {
+				region, err = f.unpack(city["region_seek"].(uint32), 1)
+				if err != nil {
+					return Obj{}, err
+				}
+				country, err = f.unpack(uint32(region["country_seek"].(uint16)), 0)
+				delete(city, "region_seek")
+				delete(region, "country_seek")
 			}
-			country, err = f.unpack(uint32(region["country_seek"].(uint16)), 0)
+		} else {
 			delete(city, "region_seek")
-			delete(region, "country_seek")
 		}
-
-		return Obj{"country": country, "region": region, "city": city}, err
 	}
 
-	delete(city, "region_seek")
 	return Obj{"country": country, "region": region, "city": city}, err
 }
 
