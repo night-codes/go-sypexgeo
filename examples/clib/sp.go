@@ -1,6 +1,10 @@
 package main
 
 /*
+#include <stdlib.h>
+#ifndef GO_SYPEGEO
+#define GO_SYPEGEO
+
 typedef struct {
 	int id;
 	float lat;
@@ -31,6 +35,18 @@ typedef struct {
 	spxRegion region;
 	int err;
 } spxInfo;
+
+static void spxFree(spxInfo s) {
+	free(s.city.name_en);
+	free(s.city.name_ru);
+	free(s.country.iso);
+	free(s.country.name_en);
+	free(s.country.name_ru);
+	free(s.region.iso);
+	free(s.region.name_en);
+	free(s.region.name_ru);
+}
+#endif
 */
 import "C"
 import (
