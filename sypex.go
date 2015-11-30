@@ -10,8 +10,6 @@ import (
 )
 
 type (
-	// Obj is wrap for map[string]interface{}
-	Obj      map[string]interface{}
 	dbSlices struct {
 		BIndex    []uint32 // byte index
 		MIndex    []uint32 // main index
@@ -118,13 +116,13 @@ func (f *finder) searchIdx(IPn, min, max uint32) uint32 {
 	return min
 }
 
-func (f *finder) unpack(seek, uType uint32) (Obj, error) {
+func (f *finder) unpack(seek, uType uint32) (map[string]interface{}, error) {
 	var bs []byte
 	var maxLen uint32
-	ret := Obj{}
+	ret := obj()
 
 	if int(uType+1) > len(f.Pack) {
-		return Obj{}, errors.New("Pack method not found")
+		return obj(), errors.New("Pack method not found")
 	}
 
 	switch uType {
@@ -180,17 +178,17 @@ func (f *finder) unpack(seek, uType uint32) (Obj, error) {
 	return ret, nil
 }
 
-func (f *finder) parseCity(seek uint32, full bool) (Obj, error) {
+func (f *finder) parseCity(seek uint32, full bool) (map[string]interface{}, error) {
 	if f.PackLen == 0 {
-		return Obj{}, errors.New("Pack methods not found")
+		return obj(), errors.New("Pack methods not found")
 	}
-	country, city, region := Obj{}, Obj{}, Obj{}
+	country, city, region := obj(), obj(), obj()
 	var err error
 	onlyCountry := false
 
 	if seek < f.CountryLen {
 		country, err = f.unpack(seek, 0)
-		city = Obj{
+		city = map[string]interface{}{
 			"id":      0,
 			"lat":     country["lat"],
 			"lon":     country["lon"],
@@ -200,7 +198,7 @@ func (f *finder) parseCity(seek uint32, full bool) (Obj, error) {
 		onlyCountry = true
 	} else {
 		city, err = f.unpack(seek, 2)
-		country = Obj{
+		country = map[string]interface{}{
 			"id":      city["country_id"],
 			"iso":     isoCodes[city["country_id"].(uint8)],
 			"name_en": "",
@@ -217,7 +215,7 @@ func (f *finder) parseCity(seek uint32, full bool) (Obj, error) {
 			if !onlyCountry {
 				region, err = f.unpack(city["region_seek"].(uint32), 1)
 				if err != nil {
-					return Obj{}, err
+					return obj(), err
 				}
 				country, err = f.unpack(uint32(region["country_seek"].(uint16)), 0)
 				delete(city, "region_seek")
@@ -228,7 +226,7 @@ func (f *finder) parseCity(seek uint32, full bool) (Obj, error) {
 		}
 	}
 
-	return Obj{"country": country, "region": region, "city": city}, err
+	return map[string]interface{}{"country": country, "region": region, "city": city}, err
 }
 
 // GetCountry return string country iso-code, like `RU`, `UA` etc.
@@ -237,7 +235,7 @@ func (s *SxGEO) GetCountry(IP string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return info["country"].(Obj)["iso"].(string), nil
+	return info["country"].(map[string]interface{})["iso"].(string), nil
 }
 
 // GetCountryID return integer country identifier
@@ -246,14 +244,14 @@ func (s *SxGEO) GetCountryID(IP string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return int(info["country"].(Obj)["id"].(uint8)), nil
+	return int(info["country"].(map[string]interface{})["id"].(uint8)), nil
 }
 
 // GetCityFull get full info by IP (with regions and countries data)
 func (s *SxGEO) GetCityFull(IP string) (map[string]interface{}, error) {
 	seek, err := s.finder.getLocationOffset(IP)
 	if err != nil {
-		return Obj{}, err
+		return obj(), err
 	}
 	return s.finder.parseCity(seek, true)
 }
@@ -262,7 +260,7 @@ func (s *SxGEO) GetCityFull(IP string) (map[string]interface{}, error) {
 func (s *SxGEO) GetCity(IP string) (map[string]interface{}, error) {
 	seek, err := s.finder.getLocationOffset(IP)
 	if err != nil {
-		return Obj{}, err
+		return obj(), err
 	}
 	return s.finder.parseCity(seek, false)
 }
@@ -322,4 +320,9 @@ func New(filename string) SxGEO {
 			},
 		},
 	}
+}
+
+func obj() (r map[string]interface{}) {
+	r = map[string]interface{}{}
+	return
 }
