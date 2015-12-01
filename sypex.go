@@ -188,7 +188,7 @@ func (f *finder) parseCity(seek uint32, full bool) (map[string]interface{}, erro
 
 	if seek < f.CountryLen {
 		country, err = f.unpack(seek, 0)
-		if country["id"].(uint8) == 0 {
+		if country["id"] == nil || country["id"].(uint8) == 0 {
 			return obj(), errors.New("IP out of range")
 		}
 		city = map[string]interface{}{
@@ -212,14 +212,14 @@ func (f *finder) parseCity(seek uint32, full bool) (map[string]interface{}, erro
 		delete(city, "country_id")
 	}
 
-	if err == nil && city["region_seek"].(uint32) != 0 {
+	if err == nil && city["region_seek"] != nil && city["region_seek"].(uint32) != 0 {
 		if full {
 			if !onlyCountry {
 				region, err = f.unpack(city["region_seek"].(uint32), 1)
 				if err != nil {
 					return obj(), err
 				}
-				if region["country_seek"].(uint16) != 0 {
+				if region["country_seek"] != nil && region["country_seek"].(uint16) != 0 {
 					country, err = f.unpack(uint32(region["country_seek"].(uint16)), 0)
 				}
 				delete(city, "region_seek")
