@@ -4,6 +4,7 @@ package sypexgeo
 
 import (
 	"errors"
+	"github.com/mirrr/bcache"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -36,6 +37,7 @@ type (
 	// SxGEO main object
 	SxGEO struct {
 		finder  finder
+		cache   bcache.Cache
 		Version float32
 		Updated uint32
 	}
@@ -251,22 +253,33 @@ func (s *SxGEO) GetCountryID(IP string) (int, error) {
 	return int(info["country"].(map[string]interface{})["id"].(uint8)), nil
 }
 
-// GetCityFull get full info by IP (with regions and countries data)
-func (s *SxGEO) GetCityFull(IP string) (map[string]interface{}, error) {
+func (s *SxGEO) getCity(IP string, full bool) (map[string]interface{}, error) {
 	seek, err := s.finder.getLocationOffset(IP)
 	if err != nil {
 		return obj(), err
 	}
-	return s.finder.parseCity(seek, true)
+	key := strconv.FormatUint(uint64(seek), 10)
+	if full {
+		key += "-full"
+	}
+	if r := s.cache.Get(key); r != nil {
+		return r.(map[string]interface{}), nil
+	}
+	data, err := s.finder.parseCity(seek, full)
+	if err == nil {
+		s.cache.Set(key, data)
+	}
+	return data, err
+}
+
+// GetCityFull get full info by IP (with regions and countries data)
+func (s *SxGEO) GetCityFull(IP string) (map[string]interface{}, error) {
+	return s.getCity(IP, true)
 }
 
 // GetCity get short info by IP
 func (s *SxGEO) GetCity(IP string) (map[string]interface{}, error) {
-	seek, err := s.finder.getLocationOffset(IP)
-	if err != nil {
-		return obj(), err
-	}
-	return s.finder.parseCity(seek, false)
+	return s.getCity(IP, false)
 }
 
 // New SxGEO object
@@ -297,10 +310,15 @@ func New(filename string) SxGEO {
 	cntrStart := cityStart + cityLen
 	cntrEnd := cntrStart + countryLen
 	pack := strings.Split(string(dat[40:40+packLen]), string(byte(0)))
+	cache := bcache.Create()
+	cache.Updater(func(key string) interface{} {
+		return nil
+	})
 
 	return SxGEO{
 		Version: float32(dat[3]) / 10,
 		Updated: readUint32(dat, 4),
+		cache:   cache,
 		finder: finder{
 			Blocks:     uint32(readUint16(dat, 13)),
 			DBItems:    DBItems,
