@@ -50,8 +50,8 @@ static void spxFree(spxInfo s) {
 */
 import "C"
 import (
-	"github.com/mirrr/go-sypexgeo"
-	"github.com/mirrr/types"
+	"gopkg.in/mirrr/go-sypexgeo.v1"
+	"gopkg.in/mirrr/types.v1"
 )
 
 var geo sypexgeo.SxGEO

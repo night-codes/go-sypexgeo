@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/mirrr/go-sypexgeo"
+	"gopkg.in/mirrr/go-sypexgeo.v1"
 	"time"
 )
 

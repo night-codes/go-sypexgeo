@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/mirrr/go-sypexgeo"
+	"gopkg.in/mirrr/go-sypexgeo.v1"
 	"math/rand"
 	"strconv"
 	"time"
