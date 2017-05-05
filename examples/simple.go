@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/mirrr/go-sypexgeo.v1"
+	"gopkg.in/night-codes/go-sypexgeo.v1"
 )
 
 func main() {
