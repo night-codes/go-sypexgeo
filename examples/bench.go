@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/mirrr/go-sypexgeo.v1"
+	"gopkg.in/night-codes/go-sypexgeo.v1"
 	"math/rand"
 	"strconv"
 	"time"
