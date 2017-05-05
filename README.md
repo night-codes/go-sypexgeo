@@ -15,7 +15,7 @@ Direct DB links that might became broken over time:
 
 ## How To Install   
 ```bash
-go get gopkg.in/mirrr/go-sypexgeo.v1
+go get gopkg.in/night-codes/go-sypexgeo.v1
 ```
 
    
