@@ -110,7 +110,7 @@ func (f *finder) searchIdx(IPn, min, max uint32) uint32 {
 			max = offset
 		}
 	}
-	for IPn > uint32(f.S.MIndex[min]) && min <= max {
+	for IPn > uint32(f.S.MIndex[min]) && min < max {
 		min++
 	}
 	return min
