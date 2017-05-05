@@ -10,7 +10,7 @@ Direct DB links that might became broken over time:
 
 
 ## Documentation
-[Docs on godoc.org](https://godoc.org/gopkg.in/mirrr/go-sypexgeo.v1)   
+[Docs on godoc.org](https://godoc.org/gopkg.in/night-codes/go-sypexgeo.v1)   
 
 
 ## How To Install   
@@ -24,7 +24,7 @@ go get gopkg.in/mirrr/go-sypexgeo.v1
 ```go
 package main
 
-import "gopkg.in/mirrr/go-sypexgeo.v1"
+import "gopkg.in/night-codes/go-sypexgeo.v1"
 
 func main() {
     geo := sypexgeo.New("/path/to/db/SxGeoCity.dat")
