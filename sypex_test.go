@@ -26,11 +26,11 @@ func TestGetCityFull1(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if info["city"].(Obj)["name_en"].(string) != "Kiev" {
-		t.Error("`name_en` not equal `Kiev`:", info["city"].(Obj)["name_en"])
+	if info["city"].(map[string]interface{})["name_en"].(string) != "Kiev" {
+		t.Error("`name_en` not equal `Kiev`:", info["city"].(map[string]interface{})["name_en"])
 	}
-	if info["region"].(Obj)["name_en"].(string) != "Kyiv" {
-		t.Error("`name_en` not equal `Kyiv`", info["region"].(Obj)["name_en"])
+	if info["region"].(map[string]interface{})["name_en"].(string) != "Kyiv" {
+		t.Error("`name_en` not equal `Kyiv`", info["region"].(map[string]interface{})["name_en"])
 	}
 	_, err = geo.GetCityFull("0.0.0.0")
 	if err == nil {
@@ -45,8 +45,8 @@ func TestGetCityFull2(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if info["country"].(Obj)["name_en"].(string) != "Malaysia" {
-		t.Error("`name_en` not equal `Malaysia`:", info["country"].(Obj)["name_en"])
+	if info["country"].(map[string]interface{})["name_en"].(string) != "Malaysia" {
+		t.Error("`name_en` not equal `Malaysia`:", info["country"].(map[string]interface{})["name_en"])
 	}
 	fmt.Println("PASS")
 }
@@ -57,8 +57,8 @@ func TestGetCity(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if info["city"].(Obj)["name_en"].(string) != "Cupertino" {
-		t.Error("`name_en` not equal `Cupertino`", info["city"].(Obj)["name_en"])
+	if info["city"].(map[string]interface{})["name_en"].(string) != "Cupertino" {
+		t.Error("`name_en` not equal `Cupertino`", info["city"].(map[string]interface{})["name_en"])
 	}
 	fmt.Println("PASS")
 }

@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/night-codes/go-sypexgeo.v1"
+	"github.com/night-codes/go-sypexgeo"
 )
 
 func main() {
-	geo := sypexgeo.New("SxGeoCity.dat")
-	printJSON(geo.GetCityFull("93.73.35.74"))
+	geo := sypexgeo.New("../SxGeoCity.dat")
+	printJSON(geo.Info("93.73.35.74"))
 }
 
 func printJSON(t ...interface{}) {

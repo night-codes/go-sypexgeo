@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include "sp.h"
 
 
 void printInfo(spxInfo info) {

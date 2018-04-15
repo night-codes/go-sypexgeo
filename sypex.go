@@ -39,7 +39,42 @@ type (
 		Version float32
 		Updated uint32
 	}
+	// Country struct
+	Country struct {
+		ID     uint8
+		ISO    string
+		NameEn string
+		NameRu string
+		Lon    float32
+		Lat    float32
+	}
+	// Region struct
+	Region struct {
+		ID     uint32
+		ISO    string
+		NameEn string
+		NameRu string
+	}
+	// City struct
+	City struct {
+		ID     uint32
+		NameEn string
+		NameRu string
+		Lon    float32
+		Lat    float32
+	}
+	// Result of geoip lookup
+	Result struct {
+		Country Country
+		Region  Region
+		City    City
+	}
 )
+
+/*func test() {
+	a := &SxGEO{}
+	a.Get
+}*/
 
 func (f *finder) getLocationOffset(IP string) (uint32, error) {
 	firstByte, err := getIPByte(IP, 0)
@@ -181,6 +216,68 @@ func (f *finder) unpack(seek, uType uint32) (map[string]interface{}, error) {
 	return ret, nil
 }
 
+func (f *finder) parseToStruct(seek uint32, full bool) (Result, error) {
+	ret := Result{}
+	result, err := f.parseCity(seek, full)
+	if err == nil {
+		if countryIfce, exists := result["country"]; exists {
+			country, _ := countryIfce.(map[string]interface{})
+			if f, ok := country["id"]; ok {
+				ret.Country.ID, _ = f.(uint8)
+			}
+			if f, ok := country["name_en"]; ok {
+				ret.Country.NameEn, _ = f.(string)
+			}
+			if f, ok := country["name_ru"]; ok {
+				ret.Country.NameRu, _ = f.(string)
+			}
+			if f, ok := country["lat"]; ok {
+				ret.Country.Lat, _ = f.(float32)
+			}
+			if f, ok := country["lon"]; ok {
+				ret.Country.Lon, _ = f.(float32)
+			}
+			if f, ok := country["iso"]; ok {
+				ret.Country.ISO, _ = f.(string)
+			}
+		}
+		if cregionIfce, exists := result["region"]; exists {
+			region, _ := cregionIfce.(map[string]interface{})
+			if f, ok := region["id"]; ok {
+				ret.Region.ID, _ = f.(uint32)
+			}
+			if f, ok := region["name_en"]; ok {
+				ret.Region.NameEn, _ = f.(string)
+			}
+			if f, ok := region["name_ru"]; ok {
+				ret.Region.NameRu, _ = f.(string)
+			}
+			if f, ok := region["iso"]; ok {
+				ret.Region.ISO, _ = f.(string)
+			}
+		}
+		if cityIfce, exists := result["city"]; exists {
+			city, _ := cityIfce.(map[string]interface{})
+			if f, ok := city["id"]; ok {
+				ret.City.ID, _ = f.(uint32)
+			}
+			if f, ok := city["name_en"]; ok {
+				ret.City.NameEn, _ = f.(string)
+			}
+			if f, ok := city["name_ru"]; ok {
+				ret.City.NameRu, _ = f.(string)
+			}
+			if f, ok := city["lat"]; ok {
+				ret.City.Lat, _ = f.(float32)
+			}
+			if f, ok := city["lon"]; ok {
+				ret.City.Lon, _ = f.(float32)
+			}
+		}
+	}
+	return ret, err
+}
+
 func (f *finder) parseCity(seek uint32, full bool) (map[string]interface{}, error) {
 	if f.PackLen == 0 {
 		return obj(), errors.New("Pack methods not found")
@@ -261,6 +358,35 @@ func (s *SxGEO) GetCityFull(IP string) (map[string]interface{}, error) {
 		return obj(), err
 	}
 	return s.finder.parseCity(seek, true)
+}
+
+// Info by IP
+func (s *SxGEO) Info(IP string) (Result, error) {
+	seek, err := s.finder.getLocationOffset(IP)
+	if err != nil {
+		return Result{}, err
+	}
+	return s.finder.parseToStruct(seek, true)
+}
+
+// City info by IP
+func (s *SxGEO) City(IP string) (City, error) {
+	seek, err := s.finder.getLocationOffset(IP)
+	if err != nil {
+		return City{}, err
+	}
+	ret, err2 := s.finder.parseToStruct(seek, false)
+	return ret.City, err2
+}
+
+// Country info by IP
+func (s *SxGEO) Country(IP string) (Country, error) {
+	seek, err := s.finder.getLocationOffset(IP)
+	if err != nil {
+		return Country{}, err
+	}
+	ret, err2 := s.finder.parseToStruct(seek, true)
+	return ret.Country, err2
 }
 
 // GetCity get short info by IP
