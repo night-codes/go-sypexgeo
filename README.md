@@ -5,8 +5,8 @@ For more information about Sypex Geo databases and their features please visit h
 
 Direct DB links that might became broken over time:
 
-  * Sypex Geo City DB - http://sypexgeo.net/files/SxGeoCity_utf8.zip
-  * Sypex Geo City Max DB - http://sypexgeo.net/files/SxGeoCityMax_utf8.zip
+  * Sypex Geo City DB (free) - http://sypexgeo.net/files/SxGeoCity_utf8.zip
+  * Sypex Geo City Max DB - https://sypexgeo.net/ru/buy/
 
 
 ## Documentation
