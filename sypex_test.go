@@ -8,7 +8,7 @@ import (
 var geo SxGEO
 
 func init() {
-	geo = New("examples/SxGeoCity.dat")
+	geo, _ = New("examples/SxGeoCity.dat")
 }
 
 func TestErrors(t *testing.T) {
