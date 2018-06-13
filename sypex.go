@@ -399,14 +399,14 @@ func (s *SxGEO) GetCity(IP string) (map[string]interface{}, error) {
 }
 
 // New SxGEO object
-func New(filename string) SxGEO {
+func New(filename string) (SxGEO, error) {
 	dat, err := ioutil.ReadFile(filename)
 	if err != nil {
-		panic("Database file not found")
+		return SxGEO{}, errors.New("Database file not found")
 	} else if string(dat[:3]) != `SxG` && dat[3] != 22 && dat[8] != 2 {
-		panic("Wrong database format")
+		return SxGEO{}, errors.New("Wrong database format")
 	} else if dat[9] != 0 {
-		panic("Only UTF-8 version is supported")
+		return SxGEO{}, errors.New("Only UTF-8 version is supported")
 	}
 
 	IDLen := uint32(dat[19])
@@ -452,7 +452,7 @@ func New(filename string) SxGEO {
 				Countries: dat[cntrStart:cntrEnd],
 			},
 		},
-	}
+	}, nil
 }
 
 func obj() (r map[string]interface{}) {
