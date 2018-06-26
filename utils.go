@@ -21,10 +21,10 @@ func readUint16L(bs []byte, offset int) uint16 {
 	return uint16(bs[offset+1])<<8 + uint16(bs[offset])
 }
 func readN32L(bs []byte, offset int, coma int) float32 {
-	return float32(binary.LittleEndian.Uint32(bs[offset:offset+4])) / float32(math.Pow10(coma))
+	return float32(int32(binary.LittleEndian.Uint32(bs[offset:offset+4]))) / float32(math.Pow10(coma))
 }
 func readN16L(bs []byte, offset int, coma int) float32 {
-	return float32(binary.LittleEndian.Uint16(bs[offset:offset+2])) / float32(math.Pow10(coma))
+	return float32(int16(binary.LittleEndian.Uint16(bs[offset:offset+2]))) / float32(math.Pow10(coma))
 }
 func readString(bs []byte, offset int) string { // faster than `binary.BigEndian.Uint32`
 	i := offset
