@@ -175,7 +175,12 @@ func (f *finder) unpack(seek, uType uint32) (map[string]interface{}, error) {
 		maxLen = f.MaxCity
 	}
 
-	raw := bs[seek : seek+maxLen]
+	limit := int(seek) + int(maxLen)
+	if limit > cap(bs) {
+		limit = cap(bs)
+	}
+
+	raw := bs[seek:limit]
 
 	var cursor int
 	for _, el := range strings.Split(f.Pack[uType], "/") {
