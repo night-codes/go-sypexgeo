@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/night-codes/go-sypexgeo"
 	"github.com/night-codes/tokay"
-	"time"
 )
 
 func main() {
@@ -15,11 +15,14 @@ func main() {
 	router.Any("/spxgeo/<ip>", func(c *tokay.Context) {
 		c.Header("Expires", time.Now().String())
 		c.Header("Cache-Control", "no-cache")
-		info, _ := geo.Info(c.Param("ip"))
-		j, _ := json.MarshalIndent(info, "", "\t")
-		c.String(200, string(j))
+		info, err := geo.Info(c.Param("ip"))
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
+		c.JSON(200, info)
 	})
 
-	fmt.Println("Server started at http://localhost:3000")
-	router.Run(":3000")
+	router.Run(":3000", "Server started. Try: http://localhost%s/spxgeo/1.4.10.10")
 }

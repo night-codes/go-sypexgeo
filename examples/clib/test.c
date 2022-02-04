@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "sp.h"
 
 
 void printInfo(spxInfo info) {
@@ -18,5 +19,3 @@ int main() {
 	printf("Coutry code: %s\n", spxGetCountry("53.12.92.225"));
 	printf("Coutry ID: %i\n", spxGetCountryID("53.12.92.225"));
 }
-
-

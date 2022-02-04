@@ -2,6 +2,7 @@ package main
 
 /*
 #include <stdlib.h>
+
 #ifndef GO_SYPEGEO
 #define GO_SYPEGEO
 
@@ -50,8 +51,8 @@ static void spxFree(spxInfo s) {
 */
 import "C"
 import (
+	"github.com/night-codes/conv"
 	"github.com/night-codes/go-sypexgeo"
-	"gopkg.in/night-codes/types.v1"
 )
 
 var geo sypexgeo.SxGEO
@@ -64,7 +65,7 @@ func spxConnect(c *C.char) {
 
 //export spxGetCity
 func spxGetCity(ip *C.char, full C.int) (ret C.spxInfo) {
-	var info sypexgeo.Obj
+	var info map[string]interface{}
 	var err error
 	if int(full) == 1 {
 		info, err = geo.GetCityFull(C.GoString(ip))
@@ -75,31 +76,31 @@ func spxGetCity(ip *C.char, full C.int) (ret C.spxInfo) {
 	if err != nil {
 		ret.err = 1
 	} else {
-		city, _ := info["city"].(sypexgeo.Obj)
-		country, _ := info["country"].(sypexgeo.Obj)
-		region, _ := info["region"].(sypexgeo.Obj)
+		city, _ := info["city"].(map[string]interface{})
+		country, _ := info["country"].(map[string]interface{})
+		region, _ := info["region"].(map[string]interface{})
 
 		ret = C.spxInfo{
 			city: C.spxCity{
-				id:      C.int(types.Int(city["id"])),
-				lat:     C.float(types.Float32(city["lat"])),
-				lon:     C.float(types.Float32(city["lon"])),
-				name_en: C.CString(types.String(city["name_en"])),
-				name_ru: C.CString(types.String(city["name_ru"])),
+				id:      C.int(conv.Int(city["id"])),
+				lat:     C.float(conv.Float32(city["lat"])),
+				lon:     C.float(conv.Float32(city["lon"])),
+				name_en: C.CString(conv.String(city["name_en"])),
+				name_ru: C.CString(conv.String(city["name_ru"])),
 			},
 			country: C.spxCountry{
-				id:      C.int(types.Int(country["id"])),
-				iso:     C.CString(types.String(country["iso"])),
-				lat:     C.float(types.Float32(country["lat"])),
-				lon:     C.float(types.Float32(country["lon"])),
-				name_en: C.CString(types.String(country["name_en"])),
-				name_ru: C.CString(types.String(country["name_ru"])),
+				id:      C.int(conv.Int(country["id"])),
+				iso:     C.CString(conv.String(country["iso"])),
+				lat:     C.float(conv.Float32(country["lat"])),
+				lon:     C.float(conv.Float32(country["lon"])),
+				name_en: C.CString(conv.String(country["name_en"])),
+				name_ru: C.CString(conv.String(country["name_ru"])),
 			},
 			region: C.spxRegion{
-				id:      C.int(types.Int(region["id"])),
-				iso:     C.CString(types.String(region["iso"])),
-				name_en: C.CString(types.String(region["name_en"])),
-				name_ru: C.CString(types.String(region["name_ru"])),
+				id:      C.int(conv.Int(region["id"])),
+				iso:     C.CString(conv.String(region["iso"])),
+				name_en: C.CString(conv.String(region["name_en"])),
+				name_ru: C.CString(conv.String(region["name_ru"])),
 			},
 		}
 	}
