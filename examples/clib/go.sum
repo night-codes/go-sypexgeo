@@ -1,4 +1,4 @@
 github.com/night-codes/conv v1.0.2 h1:0u4R30EOHAN2aJK4yMdCyidpIEVUzpoZxUUIq7bD9ro=
 github.com/night-codes/conv v1.0.2/go.mod h1:Lb9+y5Znhtq1/e2hJ93+FXkbLYyqAzyYe1tcSZvQa0k=
-github.com/night-codes/go-sypexgeo v0.0.0-20220204130107-58e4e9af21d4 h1:bdTnhJ5mYHa5q8Hsq+6bhsZe8Nadt2LTYqMhYfpE/Og=
-github.com/night-codes/go-sypexgeo v0.0.0-20220204130107-58e4e9af21d4/go.mod h1:a1CTVmL98MYMFqhW+ulcA1Rk5gX6MMDOztUFFbmyEhk=
+github.com/night-codes/go-sypexgeo v1.0.0 h1:TrrVkENKgjnGJ0Q+zVYOxMFS9WypS7Ygqf3G1UH3DjM=
+github.com/night-codes/go-sypexgeo v1.0.0/go.mod h1:qoFQ2S30Iye2Es2ODVYSSWz4sEUlHyT0nyy+JYe9DWM=
